@@ -1,0 +1,23 @@
+---
+teardown: false
+
+supported_resources:
+  - pod
+  - deployment
+  - deploymentconfig
+  - secret
+  - job
+
+# array of resources requested
+requested_resources:
+  - type: Pod
+    count: 10
+    definition: {}
+  - type: Secret
+    count: 10
+  - type: Deployment
+    count: 10
+  - type: DeploymentConfig
+    count: 10
+  - type: Job
+    count: 10

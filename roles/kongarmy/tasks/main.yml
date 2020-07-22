@@ -1,0 +1,18 @@
+---
+- when: not teardown|bool
+  tags:
+  - resource_generation
+  block:
+  - include_tasks: "kong_res_gen.yml"
+    loop: "{{ requested_resources }}"
+    loop_control:
+      loop_var: kong_resource
+
+- when: teardown|bool
+  tags:
+  - resource_generation
+  block:
+  - include_tasks: "kong_res_clean.yml"
+    loop: "{{ requested_resources }}"
+    loop_control:
+      loop_var: kong_resource

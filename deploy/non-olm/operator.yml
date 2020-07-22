@@ -2,14 +2,14 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: kubekongs.konveyor.openshift.io
+  name: kongarmies.konveyor.openshift.io
 spec:
   group: konveyor.openshift.io
   names:
-    kind: KubeKong
-    listKind: KubeKongList
-    plural: kubekongs
-    singular: kubekong
+    kind: KongArmy
+    listKind: KongArmyList
+    plural: kongarmies
+    singular: kongarmy
   scope: Namespaced
   subresources:
     status: {}

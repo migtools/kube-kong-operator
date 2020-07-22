@@ -1,0 +1,8 @@
+apiVersion: konveyor.openshift.io/v1alpha1
+kind: KongArmy
+metadata:
+  name: example-kongarmy
+  namespace: kube-kong
+spec:
+  # Add fields here
+  size: 3

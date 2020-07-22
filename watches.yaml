@@ -1,0 +1,7 @@
+---
+- version: v1alpha1
+  group: konveyor.openshift.io
+  kind: KongArmy
+  role: /opt/ansible/roles/kongarmy
+  reconcilePeriod: 30m
+  manageStatus: false

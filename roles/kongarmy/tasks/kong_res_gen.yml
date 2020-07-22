@@ -1,0 +1,53 @@
+---
+- set_fact:
+    kong_labels:
+      metadata:
+        labels:
+          ownedByKind: KongArmy
+          ownedByName: "{{ meta.name }}"
+    kong_requested_resource:
+      type: "{{ kong_resource.get('type', 'typeNotFound') | string | lower }}"
+      count: "{{ kong_resource.get('count', 1) | int }}"
+      definition: "{{ kong_resource.get('definition', {}) }}"
+    already_exists: false
+
+- when:
+  - kong_requested_resource.type not in supported_resources
+  debug:
+    msg: "Requested resource {{ kong_requested_resource.type }} not supported by KongArmy"
+
+- when: 
+  - kong_requested_resource.definition == {}
+  - kong_requested_resource.type in supported_resources
+  - not already_exists
+  ignore_errors: true
+  block:
+  - name: "Generating resource using default definition"
+    vars:
+      resource_name: "kong-{{ res_idx }}"
+    k8s:
+      state: present
+      definition: "{{ lookup('template', kong_requested_resource.type + '.yml.j2') }}"
+    with_sequence: "start=1 end={{ kong_requested_resource.count }}"
+    loop_control:
+      loop_var: res_idx
+
+- when: 
+  - kong_requested_resource.definition != {}
+  - not already_exists
+  ignore_errors: true
+  block:
+  - name: "Generating resource using provided definition"
+    vars:
+      kong_name: 
+        metadata:
+          name: "kong-{{ res_idx }}"
+    k8s:
+      state: present
+      definition: "{{ kong_requested_resource.definition | 
+        combine(kong_labels, recursive=true) | 
+        combine(kong_name, recursive=true) 
+      }}"
+    with_sequence: "start=1 end={{ kong_requested_resource.count }}"
+    loop_control:
+      loop_var: res_idx
