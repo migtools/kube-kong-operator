@@ -35,7 +35,7 @@
     k8s_facts:
       kind: "{{ kong_requested_resource.kind }}"
       namespace: "{{ meta.namespace }}"
-      api_version: "{{ kong_requested_resource.definition.metadata.apiVersion }}"
+      api_version: "{{ kong_requested_resource.definition.apiVersion }}"
     register: discovery_results
 
 - when: 
@@ -62,14 +62,15 @@
   block:
   - name: "Generating resource using provided definition"
     vars:
-      kong_name: 
+      kong_metadata: 
         metadata:
           name: "kong-{{ res_idx }}"
+          namespace: "{{ meta.namespace }}"
     k8s:
       state: present
       definition: "{{ kong_requested_resource.definition | 
         combine(kong_labels, recursive=true) | 
-        combine(kong_name, recursive=true) 
+        combine(kong_metadata, recursive=true) 
       }}"
     with_sequence: "start=1 end={{ kong_requested_resource.count }}"
     loop_control:

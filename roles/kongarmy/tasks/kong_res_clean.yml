@@ -29,14 +29,15 @@
   block:
   - name: "Cleaning up resource"
     vars:
-      kong_name: 
+      kong_metadata:
         metadata:
           name: "kong-{{ res_idx }}"
+          namespace: "{{ meta.namespace }}"
     k8s:
       state: absent
       definition: "{{ kong_requested_resource.definition | 
         combine(kong_labels, recursive=true) |
-        combine(kong_name, recursive=true)
+        combine(kong_metadata, recursive=true)
       }}"
     with_sequence: start=1 end={{ kong_requested_resource.count }}
     loop_control:
