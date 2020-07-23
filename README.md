@@ -68,6 +68,9 @@ spec:
         spec:
           data: kong-operator-is-awesome
 ```
+#### KongArmy Configuration
+
+1. requested_resources
 
 `requested_resources` is an array of resources with each item containing the following keys :
 
@@ -84,6 +87,10 @@ When `kind` is specified, the operator will use its own default definition for t
 4. Secret
 
 When `kind` is not defined, you have to provide your own definition for the resource using `definition` field. This is particularly useful if you want to use other resources than the default supported ones.
+
+2. teardown
+
+`teardown` is a boolean flag to request operator to teardown all the resources it created. 
 
 ### KongBlitz Custom Resource
 
