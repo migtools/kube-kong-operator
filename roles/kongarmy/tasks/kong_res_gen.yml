@@ -41,7 +41,7 @@
 - when: 
   - kong_requested_resource.definition == {}
   - requested_resource_supported|bool
-  - discovery_results.resources | d([]) | length != kong_requested_resource.count
+  - discovery_results.resources | d([]) | length < kong_requested_resource.count
   ignore_errors: true
   block:
   - name: "Generating resource using default definition"
@@ -57,7 +57,7 @@
 - when: 
   - kong_requested_resource.definition != {}
   - not already_exists
-  - discovery_results.resources | d([]) | length != kong_requested_resource.count
+  - discovery_results.resources | d([]) | length < kong_requested_resource.count
   ignore_errors: true
   block:
   - name: "Generating resource using provided definition"

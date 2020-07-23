@@ -1,0 +1,4 @@
+{% for i in range(kong_requested_resource.count) %}
+---
+{{ kong_requested_resource.definition | combine(kong_labels, recursive=true) | combine(kong_metadata, recursive=true) | to_yaml }}
+{% endfor %}
