@@ -24,7 +24,7 @@
     deploy_dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/deploy"
     pull_policy: Never
     REPLACE_IMAGE: konveyor.openshift.io/kube-kong-operator:testing
-    custom_resource: "{{ lookup('file', '/'.join([deploy_dir, 'crds/konveyor_v1alpha1_kongarmy_cr.yaml'])) | from_yaml }}"
+    custom_resource: "{{ lookup('file', '/'.join([deploy_dir, 'crds/konveyor.openshift.io_v1alpha1_kongarmy_cr.yaml'])) | from_yaml }}"
   tasks:
   - block:
     - name: Delete the Operator Deployment

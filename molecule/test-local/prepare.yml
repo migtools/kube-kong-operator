@@ -10,7 +10,7 @@
   tasks:
   - name: Create Custom Resource Definition
     k8s:
-      definition: "{{ lookup('file', '/'.join([deploy_dir, 'crds/konveyor_v1alpha1_kongarmy_crd.yaml'])) }}"
+      definition: "{{ lookup('file', '/'.join([deploy_dir, 'crds/konveyor.openshift.io_v1alpha1_kongarmy_crd.yaml'])) }}"
 
   - name: Ensure specified namespace is present
     k8s:

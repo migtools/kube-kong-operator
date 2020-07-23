@@ -1,0 +1,7 @@
+apiVersion: konveyor.openshift.io/v1alpha1
+kind: KongBlitz
+metadata:
+  name: example-kongblitz
+spec:
+  # Add fields here
+  size: 3
