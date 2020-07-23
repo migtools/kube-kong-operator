@@ -1,4 +1,11 @@
 ---
+- set_fact:
+    kong_labels:
+      metadata:
+        labels:
+          ownedByKind: KongArmy
+          ownedByName: "{{ meta.name }}"
+
 - when: not teardown|bool
   tags:
   - resource_generation

@@ -2,22 +2,22 @@
 teardown: false
 
 supported_resources:
-  - pod
-  - deployment
-  - deploymentconfig
-  - secret
-  - job
+  pod: v1
+  deployment: apps/v1
+  secret: v1
+  configmap: v1
+  job: v1
 
 # array of resources requested
 requested_resources:
-  - type: Pod
+  - kind: Pod
     count: 10
     definition: {}
-  - type: Secret
+  - kind: Secret
     count: 10
-  - type: Deployment
+  - kind: Deployment
     count: 10
-  - type: DeploymentConfig
+  - kind: DeploymentConfig
     count: 10
-  - type: Job
+  - kind: Job
     count: 10

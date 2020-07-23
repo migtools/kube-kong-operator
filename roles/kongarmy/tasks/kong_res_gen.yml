@@ -1,25 +1,47 @@
 ---
 - set_fact:
-    kong_labels:
-      metadata:
-        labels:
-          ownedByKind: KongArmy
-          ownedByName: "{{ meta.name }}"
     kong_requested_resource:
-      type: "{{ kong_resource.get('type', 'typeNotFound') | string | lower }}"
+      kind: "{{ kong_resource.get('kind', 'kindNotFound') | string | lower }}"
       count: "{{ kong_resource.get('count', 1) | int }}"
       definition: "{{ kong_resource.get('definition', {}) }}"
     already_exists: false
 
+- set_fact:
+    requested_resource_supported: "{{ kong_requested_resource.kind in supported_resources.keys() }}"
+
 - when:
-  - kong_requested_resource.type not in supported_resources
+  - kong_requested_resource.definition == {}
+  - not requested_resource_supported|bool
   debug:
-    msg: "Requested resource {{ kong_requested_resource.type }} not supported by KongArmy"
+    msg: "Requested resource {{ kong_requested_resource.kind }} not a part of default KongArmy. Please specify a definition field."
+
+- when:
+  - kong_requested_resource.definition == {}
+  - requested_resource_supported|bool
+  ignore_errors: true
+  block:
+  - name: "Checking whether current resource exists"
+    k8s_facts:
+      kind: "{{ kong_requested_resource.kind }}"
+      namespace: "{{ meta.namespace }}"
+      api_version: "{{ supported_resources[kong_requested_resource.kind] }}"
+    register: discovery_results
+
+- when:
+  - kong_requested_resource.definition != {}
+  ignore_errors: true
+  block:
+  - name: "Checking whether current resource exists"
+    k8s_facts:
+      kind: "{{ kong_requested_resource.kind }}"
+      namespace: "{{ meta.namespace }}"
+      api_version: "{{ kong_requested_resource.definition.metadata.apiVersion }}"
+    register: discovery_results
 
 - when: 
   - kong_requested_resource.definition == {}
-  - kong_requested_resource.type in supported_resources
-  - not already_exists
+  - requested_resource_supported|bool
+  - discovery_results.resources | d([]) | length != kong_requested_resource.count
   ignore_errors: true
   block:
   - name: "Generating resource using default definition"
@@ -27,7 +49,7 @@
       resource_name: "kong-{{ res_idx }}"
     k8s:
       state: present
-      definition: "{{ lookup('template', kong_requested_resource.type + '.yml.j2') }}"
+      definition: "{{ lookup('template', kong_requested_resource.kind + '.yml.j2') }}"
     with_sequence: "start=1 end={{ kong_requested_resource.count }}"
     loop_control:
       loop_var: res_idx
@@ -35,6 +57,7 @@
 - when: 
   - kong_requested_resource.definition != {}
   - not already_exists
+  - discovery_results.resources | d([]) | length != kong_requested_resource.count
   ignore_errors: true
   block:
   - name: "Generating resource using provided definition"

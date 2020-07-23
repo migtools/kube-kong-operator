@@ -1,49 +1,43 @@
 ---
 - set_fact:
-    kong_labels:
-      metadata:
-        labels:
-          ownedByKind: KongArmy
-          ownedByName: "{{ meta.name }}"
     kong_requested_resource:
-      type: kong_resource.get('type', 'unsupported') | string | lower
-      count: kong_resource.get('count', 1)
-      definition: kong_resource.get('definition', {})
-    already_exists: false
+      kind: "{{ kong_resource.get('kind', 'unsupported') | string | lower }}"
+      count: "{{ kong_resource.get('count', 1) }}"
+      definition: "{{ kong_resource.get('definition', {}) }}"
 
-- when:
-  - kong_requested_resource.type not in supported_resources
-  debug:
-    msg: "Requested resource {{ kong_resource.get('type', 'untyped') }} not supported by KongArmy"
+- set_fact:
+    requested_resource_supported: "{{ kong_requested_resource.kind in supported_resources.keys() }}"
 
 - when: 
   - kong_requested_resource.definition == {}
-  - kong_requested_resource.type in supported_resources
-  - not already_exists
+  - requested_resource_supported|bool
   ignore_errors: true
   block:
-  - name: "Generating resource using provided definition"
+  - name: "Cleaning up resource"
     vars:
       resource_name: "kong-{{ res_idx }}"
     k8s:
       state: absent
-      definition: "{{ lookup('template', supplied_type + '.yml.j2') }}"
+      definition: "{{ lookup('template', kong_requested_resource.kind + '.yml.j2') }}"
     with_sequence: start=1 end={{ kong_requested_resource.count }}
     loop_control:
       loop_var: res_idx
 
 - when: 
   - kong_requested_resource.definition != {}
-  - kong_requested_resource.type in supported_resources
-  - not already_exists
   ignore_errors: true
   block:
-  - name: "Generating resource using provided definition"
+  - name: "Cleaning up resource"
     vars:
-      res_name: "kong-{{ res_idx }}"
+      kong_name: 
+        metadata:
+          name: "kong-{{ res_idx }}"
     k8s:
       state: absent
-      definition: "{{ kong_requested_resource.definition | combine(kong_labels) }}"
-    with_sequence: start=1 end={{ kong_resource.get('count', 1) }}
+      definition: "{{ kong_requested_resource.definition | 
+        combine(kong_labels, recursive=true) |
+        combine(kong_name, recursive=true)
+      }}"
+    with_sequence: start=1 end={{ kong_requested_resource.count }}
     loop_control:
       loop_var: res_idx

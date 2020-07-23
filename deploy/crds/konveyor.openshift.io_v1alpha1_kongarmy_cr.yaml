@@ -4,5 +4,6 @@ metadata:
   name: example-kongarmy
   namespace: kube-kong
 spec:
-  # Add fields here
-  size: 3
+  requested_resources:
+    - kind: Secret
+      count: 2
