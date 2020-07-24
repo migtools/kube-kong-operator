@@ -4,8 +4,33 @@ supported_resources:
     kind: Pod
     apiVersion: v1
     spec:
-      image: centos:latest
-  deployment: apps/v1
+      containers:
+      - name: kube-kong-centos
+        image: centos:latest
+        command:
+        - bash
+        - -c
+        - /usr/bin/sleep infinity
+  deployment:
+    kind: Deployment
+    apiVersion: apps/v1
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: kube-kong
+      template:
+        metadata:
+          labels:
+            app: kube-kong
+        spec:
+          containers:
+          - name: kube-kong-centos
+            image: centos:latest
+            command:
+            - bash
+            - -c 
+            - /usr/bin/sleep infinity
   secret:
     kind: Secret
     apiVersion: v1
