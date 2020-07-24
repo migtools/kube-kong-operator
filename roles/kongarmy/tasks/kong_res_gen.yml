@@ -38,12 +38,6 @@
       - "ownedByName={{ meta.name }}"
     register: resource_discovery_results
 
-- debug:
-    msg: "PG : disc-res {{ resource_discovery_results }}"
-
-- debug:
-    msg: "{{ (resource_discovery_results.resources | d([]) | length | int) }} - {{ (kong_requested_resource.count | int) }}"
-
 - when:
   - (resource_discovery_results.resources | d([]) | length | int) < (kong_requested_resource.count | int)
   ignore_errors: true
