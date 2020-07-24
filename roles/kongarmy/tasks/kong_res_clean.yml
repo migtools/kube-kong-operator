@@ -1,44 +1,23 @@
 ---
 - set_fact:
     kong_requested_resource:
-      kind: "{{ kong_resource.get('kind', 'unsupported') | string | lower }}"
-      count: "{{ kong_resource.get('count', 1) }}"
+      kind: "{{ kong_resource.get('kind', 'kindNotFound') | string | lower }}"
+      count: "{{ kong_resource.get('count', 1) | int }}"
       definition: "{{ kong_resource.get('definition', {}) }}"
 
-- set_fact:
-    requested_resource_supported: "{{ kong_requested_resource.kind in supported_resources.keys() }}"
-
-- when: 
-  - kong_requested_resource.definition == {}
-  - requested_resource_supported|bool
+- when:
+  - (resource_discovery_results.resources | d([]) | length | int) < (kong_requested_resource.count | int)
   ignore_errors: true
   block:
-  - name: "Cleaning up resource"
+  - name: "Tearing down resources"
     vars:
-      resource_name: "kong-{{ res_idx }}"
-    k8s:
-      state: absent
-      definition: "{{ lookup('template', kong_requested_resource.kind + '.yml.j2') }}"
-    with_sequence: start=1 end={{ kong_requested_resource.count }}
-    loop_control:
-      loop_var: res_idx
-
-- when: 
-  - kong_requested_resource.definition != {}
-  ignore_errors: true
-  block:
-  - name: "Cleaning up resource"
-    vars:
-      kong_metadata:
+      kong_metadata: 
         metadata:
-          name: "kong-{{ res_idx }}"
           namespace: "{{ meta.namespace }}"
+      range_start: 0
+      resource_definition: "{{ kong_requested_resource.definition if kong_requested_resource.definition != {} 
+        else supported_resources[kong_requested_resource.kind] }}"
     k8s:
       state: absent
-      definition: "{{ kong_requested_resource.definition | 
-        combine(kong_labels, recursive=true) |
-        combine(kong_metadata, recursive=true)
-      }}"
-    with_sequence: start=1 end={{ kong_requested_resource.count }}
-    loop_control:
-      loop_var: res_idx
+      definition: "{{ lookup('template', 'manifest.yml.j2') }}"
+    register: resource_generation_results

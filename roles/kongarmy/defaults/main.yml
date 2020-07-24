@@ -1,13 +1,6 @@
 ---
 teardown: false
 
-supported_resources:
-  pod: v1
-  deployment: apps/v1
-  secret: v1
-  configmap: v1
-  job: v1
-
 # array of resources requested
 requested_resources:
   - kind: Pod

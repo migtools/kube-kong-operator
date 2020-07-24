@@ -1,2 +1,15 @@
 ---
-# vars file for kongarmy
+supported_resources:
+  pod:
+    kind: Pod
+    apiVersion: v1
+    spec:
+      image: centos:latest
+  deployment: apps/v1
+  secret:
+    kind: Secret
+    apiVersion: v1
+    type: Opaque
+  configmap:
+    kind: ConfigMap
+    apiVersion: v1
