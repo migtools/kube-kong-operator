@@ -5,19 +5,39 @@
       count: "{{ kong_resource.get('count', 1) | int }}"
       definition: "{{ kong_resource.get('definition', {}) }}"
 
+- set_fact:
+    requested_custom_resource: "{{ kong_requested_resource.definition != {} }}"
+
+- ignore_errors: true
+  block:
+  - name: "Checking whether current resource exists"
+    vars:
+      kind: "{{ kong_requested_resource.kind if not requested_custom_resource
+        else kong_requested_resource.definition.kind }}"
+      api_version: "{{ supported_resources[kong_requested_resource.kind].apiVersion if not requested_custom_resource
+        else kong_requested_resource.definition.apiVersion }}"
+    k8s_info:
+      kind: "{{ kind }}"
+      namespace: "{{ meta.namespace }}"
+      api_version: "{{ api_version }}"
+      label_selectors:
+      - "ownedByKind=KongArmy"
+      - "ownedByName={{ meta.name }}"
+    register: resource_discovery_results
+
 - when:
-  - (resource_discovery_results.resources | d([]) | length | int) < (kong_requested_resource.count | int)
+  - (resource_discovery_results.resources | d([]) | length | int) > 0
   ignore_errors: true
   block:
   - name: "Tearing down resources"
     vars:
-      kong_metadata: 
-        metadata:
-          namespace: "{{ meta.namespace }}"
       range_start: 0
-      resource_definition: "{{ kong_requested_resource.definition if kong_requested_resource.definition != {} 
+      range_end: "{{ kong_requested_resource.count|int }}"
+      resource_definition: "{{ kong_requested_resource.definition if requested_custom_resource 
         else supported_resources[kong_requested_resource.kind] }}"
     k8s:
       state: absent
       definition: "{{ lookup('template', 'manifest.yml.j2') }}"
-    register: resource_generation_results
+    register: resource_teardown_results
+  
+  # TODO : gather results and update the CR status field

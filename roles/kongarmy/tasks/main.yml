@@ -1,7 +1,8 @@
 ---
 - set_fact:
-    kong_labels:
+    kong_metadata:
       metadata:
+        namespace: "{{ meta.namespace }}"
         labels:
           ownedByKind: KongArmy
           ownedByName: "{{ meta.name }}"
