@@ -39,5 +39,16 @@
       state: absent
       definition: "{{ lookup('template', 'manifest.yml.j2') }}"
     register: resource_teardown_results
-  
-  # TODO : gather results and update the CR status field
+
+  - name: "Set operator status condition"
+    vars:
+      condition:
+        - type: "{{ 'ResourceCleanFailed' if resource_teardown_results is failed else 'ResourceClean' }}"
+          status: "True"
+          reason: "{{ 'ResourceCleanFailed' if resource_teardown_results is failed 
+            else 'ResourceCleanSucceeded' }}"
+          message: "{{ 'Requested resource ' + kong_requested_resource.kind + ' cleanup failed. Please see ansible container logs for details.' if resource_teardown_results is failed 
+            else 'Requested resource ' + kong_requested_resource.kind + ' successfully removed.' }}"
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"

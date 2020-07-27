@@ -16,10 +16,20 @@
 - when:
   - not requested_custom_resource|bool
   - not requested_resource_supported|bool
-  debug:
-    msg: "Requested resource {{ kong_requested_resource.kind }} not a part of default KongArmy. Please specify a definition field."
-  
-  # TODO : update the CR status to notify users about the wrong definition / kind
+  block:
+  - debug:
+      msg: "Requested resource {{ kong_requested_resource.kind }} not a part of default KongArmy. Please specify a definition field."
+
+  - name: "Set operator status condition"
+    vars:
+      condition:
+        - type: "ResourceCheckFailed"
+          status: "True"
+          reason: "ResourceCheckFailed"
+          message: "Requested resource {{ kong_requested_resource.kind }} not a part of default KongArmy. Please specify a definition field."
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"
 
 - ignore_errors: true
   block:
@@ -52,9 +62,23 @@
       state: present
       definition: "{{ lookup('template', 'manifest.yml.j2') }}"
     register: resource_generation_results
-  
-  # TODO : gather results and update the CR status field
 
+  - debug:
+      var: resource_generation_results
+
+  - name: "Set operator status condition"
+    vars:
+      condition:
+        - type: "{{ 'ResourceGenerateFailed' if resource_generation_results is failed else 'ResourceGenerate' }}"
+          status: "True"
+          reason: "{{ 'ResourceGenFailed' if resource_generation_results is failed 
+            else 'ResourceGenSucceeded' }}"
+          message: "{{ 'Requested resource ' + kong_requested_resource.kind + ' generation failed. Please see ansible container logs for details.' if resource_generation_results is failed 
+            else 'Requested resource ' + kong_requested_resource.kind + ' successfully created.' }}"
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"
+  
 - when:
   - (resource_discovery_results.resources | d([]) | length | int) > (kong_requested_resource.count | int)
   ignore_errors: true
@@ -69,5 +93,16 @@
       state: absent
       definition: "{{ lookup('template', 'manifest.yml.j2') }}"
     register: resource_count_reconciliation_results
-  
-  # TODO: update the CR field
+
+  - name: "Set operator status condition"
+    vars:
+      condition:
+        - type: "{{ 'ResourceReconcileFailed' if resource_count_reconciliation_results is failed else 'ResourceReconcile' }}"
+          status: "True"
+          reason: "{{ 'ResourceReconFailed' if resource_count_reconciliation_results is failed 
+            else 'ResourceReconSucceeded' }}"
+          message: "{{ 'Requested resource ' + kong_requested_resource.kind + ' reconcile failed. Please see ansible container logs for details.' if resource_count_reconciliation_results is failed 
+            else 'Requested resource ' + kong_requested_resource.kind + ' successfully reconciled.' }}"
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"
