@@ -1,0 +1,25 @@
+- hosts: localhost
+  vars:
+    kong_config_path: "{{ playbook_dir }}/kong_config.yaml"
+    kong_op_manifest: "../deploy/non-olm/operator.yml"
+    teardown: false
+  tasks:
+    - name: "Check kong config file"
+      stat:
+        path: "{{ kong_config_path }}"
+      register: k_config
+
+    - assert:
+        that:
+          - k_config.stat.exists
+        fail_msg: "Failed to find kong config file, please ensure {{ kong_config_path }} is available"
+
+    - name: "Include kong config"
+      include_vars:
+        file: "{{ kong_config_path }}"
+
+    - name: "Process kong config instances"
+      include_tasks: tasks/process.yaml
+      loop: "{{ kong_config }}"
+      loop_control:
+        loop_var: kong_instance

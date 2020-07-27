@@ -1,0 +1,18 @@
+---
+- set_fact:
+    kong_namespaces: "{{ kong_instance.get('namespaces', {}) }}"
+    kong_army_cr: "{{ kong_instance.get('kong_army', {}) }}"
+
+- name: "Create kong instances"
+  include_tasks: tasks/create.yaml
+  loop: "{{ kong_namespaces }}"
+  loop_control:
+    loop_var: kong_target_ns
+  when: not teardown|bool
+
+- name: "Destroy kong instances"
+  include_tasks: tasks/destroy.yaml
+  loop: "{{ kong_namespaces }}"
+  loop_control:
+    loop_var: kong_target_ns
+  when: teardown|bool

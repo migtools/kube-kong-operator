@@ -1,0 +1,22 @@
+---
+- block:
+  - debug:
+      msg: "Processing namespace {{ kong_target_ns }}"
+
+  - name: "Create kube kong instance namespaces"
+    k8s:
+      kind: Namespace
+      state: present
+      name: "{{ kong_target_ns }}"
+
+  - name: "Deploy kube kong operator on instance namespaces"
+    k8s:
+      namespace: "{{ kong_target_ns }}"
+      state: present
+      definition: "{{ lookup('file', '{{ kong_op_manifest }}' )}}"
+
+  - name: "Create KongArmy CR on instance namespaces"
+    k8s:
+      namespace: "{{ kong_target_ns }}"
+      state: present
+      definition: "{{ lookup('template', '{{ playbook_dir }}/templates/kong_army_cr.yml.j2' )}}"

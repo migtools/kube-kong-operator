@@ -1,0 +1,7 @@
+apiVersion: konveyor.openshift.io/v1alpha1
+kind: KongArmy
+metadata:
+  name: kongarmy-{{ kong_target_ns }}
+  namespace: {{ kong_target_ns }}
+spec:
+  {{ kong_army_cr }}
