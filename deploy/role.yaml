@@ -56,6 +56,5 @@ rules:
   - konveyor.openshift.io
   resources:
   - '*'
-  - kongblitzs
   verbs:
   - '*'

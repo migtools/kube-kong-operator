@@ -11,37 +11,75 @@
     operator_conditions: []
 
 - block:
-  - name: Set Reconciled state
-    k8s_status:
+  - name: "Checking if another KongArmy resource already exists in this namespace"
+    k8s_info:
       api_version: konveyor.openshift.io/v1alpha1
       kind: KongArmy
-      name: "{{ meta.name }}"
       namespace: "{{ meta.namespace }}"
-      force: true
-      conditions: "{{ operator_conditions }}"
-      status:
-        phase: Reconciling
+    register: kong_armies
 
-  - when: not teardown|bool
-    tags:
-    - resource_generation
+  - when: kong_armies.resources | d([]) | length > 0
+    vars:
+      name_query: "[?metadata.name!='{{ meta.name }}']"
+      type_query: "[*].status.conditions[?type=='Accepted']"
+      type_boolean_query: "[*][?status=='True']"
+    set_fact:
+      should_process: "{{ (kong_armies.resources | json_query(name_query) | json_query(type_query) | json_query(type_boolean_query) | flatten | length) == 0 }}"
+
+
+  - when: should_process | d(true) | bool
+    vars:
+      condition:
+        - type: "Accepted"
+          status: "True"
+          reason: "Accepted"
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"    
+  - when: not should_process | d(true) | bool
+    vars:
+      condition:
+        - type: "Accepted"
+          status: "False"
+          reason: "ConflictingDefinition"
+          message: "Only one KongArmy allowed in one namespace"
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"
+
+  - when: should_process | d(false) | bool
     block:
-    - include_tasks: "kong_res_gen.yml"
-      loop: "{{ requested_resources }}"
-      loop_control:
-        loop_var: kong_resource
+    - name: Set Reconciling state
+      k8s_status:
+        api_version: konveyor.openshift.io/v1alpha1
+        kind: KongArmy
+        name: "{{ meta.name }}"
+        namespace: "{{ meta.namespace }}"
+        force: true
+        conditions: "{{ operator_conditions }}"
+        status:
+          phase: Reconciling
 
-  - when: teardown|bool
-    tags:
-    - resource_generation
-    block:
-    - include_tasks: "kong_res_clean.yml"
-      loop: "{{ requested_resources }}"
-      loop_control:
-        loop_var: kong_resource
+    - when: not teardown|bool
+      tags:
+      - resource_generation
+      block:
+      - include_tasks: "kong_res_gen.yml"
+        loop: "{{ requested_resources }}"
+        loop_control:
+          loop_var: kong_resource
 
-  - set_fact:
-      operator_reconciled: true
+    - when: teardown|bool
+      tags:
+      - resource_generation
+      block:
+      - include_tasks: "kong_res_clean.yml"
+        loop: "{{ requested_resources }}"
+        loop_control:
+          loop_var: kong_resource
+
+    - set_fact:
+        operator_reconciled: true
 
   always:
   - k8s_status:
