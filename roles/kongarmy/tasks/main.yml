@@ -15,6 +15,7 @@
     k8s_info:
       api_version: konveyor.openshift.io/v1alpha1
       kind: KongArmy
+      namespace: "{{ meta.namespace }}"
     register: kong_armies
 
   - when: kong_armies.resources | d([]) | length > 0
@@ -32,7 +33,6 @@
         - type: "Accepted"
           status: "True"
           reason: "Accepted"
-          message: "This CR was accepted as no other conflicting CR was found in this namespace"
           lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
     set_fact:
       operator_conditions: "{{ operator_conditions + condition }}"    
@@ -42,7 +42,7 @@
         - type: "Accepted"
           status: "False"
           reason: "ConflictingDefinition"
-          message: "Another KongArmy CR already accepted in this namespace"
+          message: "Only one KongArmy allowed in one namespace"
           lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
     set_fact:
       operator_conditions: "{{ operator_conditions + condition }}"
