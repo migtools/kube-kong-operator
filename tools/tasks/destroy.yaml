@@ -1,0 +1,10 @@
+---
+- block:
+  - debug:
+      msg: "Processing namespace {{ kong_target_ns }}"
+
+  - name: "Destroy kube kong instance namespaces"
+    k8s:
+      kind: Namespace
+      state: absent
+      name: "{{ kong_target_ns }}"

@@ -34,6 +34,10 @@ NAME                                  READY   STATUS    RESTARTS   AGE
 kube-kong-operator-5c8467bcd6-xp6rn   2/2     Running   0          26m
 ```
 
+### Installing Kube Kong on multiple namespaces
+
+See documentation to launch kube kong workloads on multiple namespaces [here](tools)
+
 ## Usage
 
 Kube Kong creates two new Custom Resources on the cluster to help users interact with the operator :
