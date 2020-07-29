@@ -1,2 +1,34 @@
 ---
-# tasks file for kongblitz
+- set_fact:
+    kongblitz_timestamps_configmap:
+      kind: ConfigMap
+      apiVersion: v1
+      metadata:
+        name: "{{ timestamp_configmap_name }}"
+        namespace: "{{ meta.namespace }}"
+    kongblitz_timestamp_data: 
+      data: {}
+    operator_conditions: []
+    operator_reconciled: true
+
+- block:
+  - name: "Reading timestamp configmap"
+    k8s_info:
+      kind: ConfigMap
+      namespace: "{{ meta.namespace }}"
+      name: "{{ timestamp_configmap_name }}"
+    register: blitz_timestamps
+
+  - include_tasks: process_resource.yml
+    loop: "{{ resources }}"
+    loop_control:
+      loop_var: current_res
+
+  - name: "Updating timestamp configmap"
+    k8s:
+      kind: ConfigMap
+      definition: "{{ kongblitz_timestamps_configmap | combine(kongblitz_timestamp_data, recursive=true) }}"
+
+  always:
+  - debug: 
+      msg: "Updating CR"      
