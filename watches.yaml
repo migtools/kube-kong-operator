@@ -10,5 +10,5 @@
   group: konveyor.openshift.io
   kind: KongBlitz
   role: /opt/ansible/roles/kongblitz
-  reconcilePeriod: 30s
+  reconcilePeriod: 5s
   manageStatus: false

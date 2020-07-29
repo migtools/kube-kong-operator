@@ -1,3 +1,4 @@
+---
 - set_fact:
     last_processed: "{{ (blitz_timestamps.get('resources')[0].get('data', {}).get(current_res.kind, ansible_date_time.iso8601)) }}"
   when: blitz_timestamps.get('resources', []) | length > 0
@@ -11,14 +12,13 @@
   - name: "Discover current resources"
     k8s_info:
       kind: "{{ current_res.kind }}"
-      api_version: "{{ current_res.api_version }}"
+      api_version: "{{ current_res.api_version | d('v1') }}"
       namespace: "{{ current_res.namespace | d(meta.namespace) }}"
-    register: all_resources
-
-  - vars:
-      resources: "{{ all_resources }}"
-    include_tasks: "actions/{{ current_action }}_action.yml"
+    register: actionable_resources
+  
+  - include_tasks: "actions/{{ current_action }}_action.yml"
     loop: "{{ current_res.actions }}"
+    ignore_errors: true # TODO: find a better approach to validate actions
     loop_control:
       loop_var: current_action
 

@@ -1,0 +1,3 @@
+---
+- debug:
+    msg: "Performing label action on resource {{ actionable_resources }}"

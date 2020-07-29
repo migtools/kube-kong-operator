@@ -31,4 +31,4 @@
 
   always:
   - debug: 
-      msg: "Updating CR"      
+      msg: "Updating CR"

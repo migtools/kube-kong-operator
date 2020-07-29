@@ -1,0 +1,3 @@
+---
+- debug:
+    msg: "Performing delete action on resource {{ actionable_resources }}"
