@@ -1,2 +1,2 @@
 ---
-# vars file for kongblitz
+action_batch_size: 100

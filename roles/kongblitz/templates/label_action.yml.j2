@@ -1,4 +1,4 @@
-{% for resource_def in resource_defs %}
+{% for i in range(action_batch_size) %}
 ---
-{{ resource_def | combine(label_update, recursive=true) }}
+{{ resource_defs[i] | combine(label_update, recursive=true) | to_yaml }}
 {% endfor %}
