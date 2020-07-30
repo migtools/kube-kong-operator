@@ -115,7 +115,7 @@ spec:
     - kind: Secret
       api_version: v1
       namespace: king-kong
-      time_delta: 1
+      time_delta: 2
       actions:
       - label
 ```
