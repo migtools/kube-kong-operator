@@ -50,6 +50,7 @@ Kube Kong creates two new Custom Resources on the cluster to help users interact
 KongArmy CR lets users configure the resources they want to create through the operator. 
 
 _KongArmy.example.yml_
+
 ```yml
 apiVersion: konveyor.openshift.io/v1alpha1
 kind: KongArmy
@@ -66,7 +67,7 @@ spec:
     - count: 100
       definition: 
         kind: ExampleCustomResource
-        apiVersion: example.openshift.io/v1alpha1
+        apiVersion: example.openshift.io/v1alpha1	
         metadata:
           namespace: king-kong
         spec:
@@ -74,13 +75,13 @@ spec:
 ```
 #### KongArmy Configuration
 
-1. requested_resources
-
 `requested_resources` is an array of resources with each item containing the following keys :
 
-* _kind_       : The resource kind you want to create
-* _count_      : The number of resources of this kind you want to create
-* _definition_ : The definition of the resource you want to create
+| Variable     	| Description                                                                         	|
+|--------------	|-------------------------------------------------------------------------------------	|
+| `kind`       	| Kind of resource to create.                                                         	|
+| `count`      	| Number of resources to create.                                                      	|
+| `definition` 	| Definition of the resource to create Only Applicable when `kind` is not  specified. 	|
 
 Please note that `kind` and `definition` are mutually exclusive fields. 
 
@@ -92,10 +93,50 @@ When `kind` is specified, the operator will use its own default definition for t
 
 When `kind` is not defined, you have to provide your own definition for the resource using `definition` field. This is particularly useful if you want to use other resources than the default supported ones.
 
-2. teardown
 
 `teardown` is a boolean flag to request operator to teardown all the resources it created. 
 
 ### KongBlitz Custom Resource
 
-KongBlitz CR defines the actions operator takes on KongArmy resources to simulate load.
+KongBlitz CR defines different actions the operator will perform on resources to simulate load.
+
+_KongBlitz.example.yml_
+
+```yml
+apiVersion: konveyor.openshift.io/v1alpha1
+kind: KongBlitz
+metadata:
+  name: example-kongblitz
+  namespace: king-kong
+spec:
+  perform_actions: true
+
+  resources:
+    - kind: Secret
+      api_version: v1
+      namespace: king-kong
+      time_delta: 1
+      actions:
+      - label
+```
+
+#### KongBlitz Configuration
+
+`perform_actions` is a boolean flag to request the operator to start or stop performing actions.
+
+`resources` is a list of resources where each item in the list contains following keys:
+
+| Variable      	| Required? 	| Description                                                                                                                                                           	|
+|---------------	|-----------	|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| `kind`        	| Yes       	| Kind of the resource                                                                                                                                                  	|
+| `api_version` 	| No        	| `apiVersion` of the resource. Defaults to `v1`                                                                                                                        	|
+| `namespace`   	| No        	| Namespace of the resource. Defauts to the namespace in which the operator is deployed.                                                                                	|
+| `time_delta`  	| Yes       	| Time spacing between action generation in the multiples of reconcile period. Reconcile period is 5s. To generate actions every 10s, `time_delta` would be set to `2`. 	|
+| `actions`     	| Yes       	| List of actions to perform. See supported actions below. 
+
+___Supported Actions___
+
+Currently supported actions include:
+* label
+* annotation
+* delete
