@@ -1,0 +1,4 @@
+{% for resource_def in resource_defs %}
+---
+{{ resource_def | combine(label_update, recursive=true) }}
+{% endfor %}

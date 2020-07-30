@@ -1,3 +1,18 @@
 ---
-- debug:
-    msg: "Performing label action on resource {{ actionable_resources }}"
+- block:
+  - name: "Updating labels on resources"
+    vars:
+      resource_defs: "{{ actionable_resources.resources }}"
+      label_update:
+        metadata:
+          labels:
+            kongBlitzResourceUpdate: "{{ 999999 | random }}"
+    k8s:
+      state: present
+      definition: "{{ lookup('template', 'label_action.yml.j2') }}"
+    async: 180
+    poll: 0
+
+  always:
+  - debug:
+      msg: "Finished performing label actions"
