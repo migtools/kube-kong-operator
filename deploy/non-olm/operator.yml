@@ -150,6 +150,9 @@ spec:
         - name: operator
           image: "quay.io/konveyor/kube-kong-operator:latest"
           imagePullPolicy: Always
+          args:
+          - "--max-workers"
+          - "6"
           volumeMounts:
           - mountPath: /tmp/ansible-operator/runner
             name: runner
