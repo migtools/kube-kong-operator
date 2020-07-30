@@ -7,7 +7,7 @@
     last_processed: "{{ ansible_date_time.iso8601 }}"
   when: blitz_timestamps.get('resources', []) | length == 0
 
-- when: (ansible_date_time.iso8601|to_datetime(time_format) - last_processed|to_datetime(time_format)).total_seconds() > current_res.frequency
+- when: (ansible_date_time.iso8601|to_datetime(time_format) - last_processed|to_datetime(time_format)).total_seconds()|int > (current_res.time_delta|int*reconcile_period|int)
   block:
   - name: "Discover current resources"
     k8s_info:
