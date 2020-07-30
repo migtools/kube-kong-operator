@@ -1,2 +1,4 @@
 ---
-# defaults file for kongblitz
+reconcile_period: 5
+time_format: "%Y-%m-%dT%H:%M:%SZ"
+timestamp_configmap_name: "kongblitz-timestamps"

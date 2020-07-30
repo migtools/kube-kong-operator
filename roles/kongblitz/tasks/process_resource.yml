@@ -1,0 +1,26 @@
+---
+- set_fact:
+    last_processed: "{{ (blitz_timestamps.get('resources')[0].get('data', {}).get(current_res.kind, ansible_date_time.iso8601)) }}"
+  when: blitz_timestamps.get('resources', []) | length > 0
+
+- set_fact:
+    last_processed: "{{ ansible_date_time.iso8601 }}"
+  when: blitz_timestamps.get('resources', []) | length == 0
+
+- when: (ansible_date_time.iso8601|to_datetime(time_format) - last_processed|to_datetime(time_format)).total_seconds()|int > (current_res.time_delta|int*reconcile_period|int)
+  block:
+  - name: "Discover current resources"
+    k8s_info:
+      kind: "{{ current_res.kind }}"
+      api_version: "{{ current_res.api_version | d('v1') }}"
+      namespace: "{{ current_res.namespace | d(meta.namespace) }}"
+    register: actionable_resources
+  
+  - include_tasks: "actions/{{ current_action }}_action.yml"
+    loop: "{{ current_res.actions }}"
+    ignore_errors: true # TODO: find a better approach to validate actions
+    loop_control:
+      loop_var: current_action
+
+- set_fact:
+    kongblitz_timestamp_data: "{{ kongblitz_timestamp_data | combine({'data': { current_res.kind: ansible_date_time.iso8601 }}, recursive=true) }}"
