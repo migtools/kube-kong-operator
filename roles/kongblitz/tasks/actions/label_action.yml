@@ -1,3 +1,5 @@
 ---
 - debug:
     msg: "Performing label action on resource {{ actionable_resources }}"
+
+# TODO status condition once action performed

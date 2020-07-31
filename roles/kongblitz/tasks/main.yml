@@ -8,10 +8,22 @@
         namespace: "{{ meta.namespace }}"
     kongblitz_timestamp_data: 
       data: {}
+    operator_reconciled: false
     operator_conditions: []
-    operator_reconciled: true
 
 - block:
+
+  - name: "Set Reconciling state"
+    k8s_status:
+      api_version: konveyor.openshift.io/v1alpha1
+      kind: KongBlitz
+      name: "{{ meta.name }}"
+      namespace: "{{ meta.namespace }}"
+      force: true
+      conditions: "{{ operator_conditions }}"
+      status:
+        phase: Reconciling
+
   - name: "Reading timestamp configmap"
     k8s_info:
       kind: ConfigMap
@@ -29,6 +41,26 @@
       kind: ConfigMap
       definition: "{{ kongblitz_timestamps_configmap | combine(kongblitz_timestamp_data, recursive=true) }}"
 
+  - set_fact:
+      operator_reconciled: true
+
   always:
-  - debug: 
-      msg: "Updating CR"
+  - k8s_status:
+      api_version: konveyor.openshift.io/v1alpha1
+      kind: KongBlitz
+      name: "{{ meta.name }}"
+      namespace: "{{ meta.namespace }}"
+      conditions: "{{ operator_conditions }}"
+      status:
+        phase: Reconciled
+    when: operator_reconciled
+
+  - k8s_status:
+      api_version: konveyor.openshift.io/v1alpha1
+      kind: KongBlitz
+      name: "{{ meta.name }}"
+      namespace: "{{ meta.namespace }}"
+      conditions: "{{ operator_conditions }}"
+      status:
+        phase: Failed
+    when: not operator_reconciled
