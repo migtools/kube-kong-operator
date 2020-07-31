@@ -1,8 +1,5 @@
 ---
 - block:
-  - set_fact:
-      resource_defs: "{{ actionable_resources.resources | shuffle }}"
-
   - name: "Updating labels on resources"
     vars:
       label_update:

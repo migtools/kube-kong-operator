@@ -14,8 +14,14 @@
       kind: "{{ current_res.kind }}"
       api_version: "{{ current_res.api_version | d('v1') }}"
       namespace: "{{ current_res.namespace | d(meta.namespace) }}"
+      label_selectors:
+      - "ownedByKind!=KongArmy"
     register: actionable_resources
   
+  - set_fact:
+      resource_defs: "{{ actionable_resources | shuffle }}"
+      batch_size: "{{ action_batch_size if action_batch_size < (actionable_resources|length|int) else (actionable_resources|length|int) }}"
+
   - include_tasks: "actions/{{ current_action }}_action.yml"
     loop: "{{ current_res.actions }}"
     ignore_errors: true # TODO: find a better approach to validate actions
