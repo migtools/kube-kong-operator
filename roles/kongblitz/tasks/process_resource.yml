@@ -1,4 +1,29 @@
 ---
+- name: "Validate Resources"
+  block:
+    - set_fact:
+        requested_timedelta_supported: "{{ 'true' if current_res.time_delta is number else 'false' }}"
+
+    - name: "Set operator status condition"
+      vars:
+        condition:
+          - type: "Critical"
+            status: "True"
+            reason: "TimeDeltaCheckFailed"
+            message: "Requested resource {{ current_res.kind }} error, timedelta must be a integer."
+            lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+      set_fact:
+        operator_conditions: "{{ operator_conditions + condition }}"
+      when: not requested_timedelta_supported|bool
+
+    - set_fact:
+        requested_actions_supported: true
+
+    - include_tasks: "validate_action.yml"
+      loop: "{{ current_res.actions }}"
+      loop_control:
+        loop_var: current_action
+
 - set_fact:
     last_processed: "{{ (blitz_timestamps.get('resources')[0].get('data', {}).get(current_res.kind, ansible_date_time.iso8601)) }}"
   when: blitz_timestamps.get('resources', []) | length > 0
@@ -7,7 +32,10 @@
     last_processed: "{{ ansible_date_time.iso8601 }}"
   when: blitz_timestamps.get('resources', []) | length == 0
 
-- when: (ansible_date_time.iso8601|to_datetime(time_format) - last_processed|to_datetime(time_format)).total_seconds()|int > (current_res.time_delta|int*reconcile_period|int)
+- when: 
+    - (ansible_date_time.iso8601|to_datetime(time_format) - last_processed|to_datetime(time_format)).total_seconds()|int > (current_res.time_delta|int*reconcile_period|int)
+    - requested_actions_supported|bool
+    - requested_timedelta_supported|bool
   block:
   - name: "Discover current resources"
     k8s_info:

@@ -38,3 +38,7 @@ supported_resources:
   configmap:
     kind: ConfigMap
     apiVersion: v1
+supported_actions:
+  - annotation
+  - delete
+  - label
