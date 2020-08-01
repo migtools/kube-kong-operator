@@ -1,7 +1,10 @@
 ---
+- set_fact:
+    resource_defs: []
+    batch_size: "{{ [requested_resource.count|int,action_batch_size|int]|min|int }}"
+
 - name: "Preparing resource sub list"
   vars:
-    resource_defs: []
     kong_metadata:
       metadata: 
         namespace: "{{ meta.namespace }}"
@@ -9,10 +12,7 @@
     resource_def: "{{ (supported_resources[requested_resource.kind|lower] if requested_resource.kind is defined else requested_resource.definition)|combine(kong_metadata, recursive=true) }}"
   set_fact:
     resource_defs: "{{ resource_defs + [resource_def] }}"
-  with_sequence: start=1 end="{{ [requested_resource.count|int,action_batch_size|int]|min|int }}"
-
-- set_fact:
-    batch_size: "{{ action_batch_size if action_batch_size < (resource_defs|length|int) else (resource_defs|length|int) }}"
+  with_sequence: start=1 end="{{ batch_size|int }}"
 
 - include_tasks: "actions/{{ current_action }}_action.yml"
   loop: "{{ kongarmy_resources.actions }}"
