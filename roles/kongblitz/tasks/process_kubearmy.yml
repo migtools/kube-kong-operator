@@ -1,6 +1,4 @@
 ---
-- include_vars: "{{ playbook_dir }}/../../kongarmy/vars/main.yml"
-
 - set_fact:
     last_processed: "{{ (blitz_timestamps.get('resources')[0].get('data', {}).get('kongarmy', ansible_date_time.iso8601)) }}"
   when: blitz_timestamps.get('resources', []) | length > 0
@@ -11,9 +9,7 @@
 
 - when: (ansible_date_time.iso8601|to_datetime(time_format) - last_processed|to_datetime(time_format)).total_seconds()|int > (kongarmy_resources.time_delta|int*reconcile_period|int)
   block:
-  - vars:
-      actionable_resources: []
-    include_tasks: process_kubearmy_resource.yml
+  - include_tasks: process_kubearmy_resource.yml
     loop: "{{ accepted_army.spec.requested_resources }}"
     loop_control:
       loop_var: requested_resource

@@ -17,10 +17,10 @@
       label_selectors:
       - "ownedByKind!=KongArmy"
     register: actionable_resources
-  
+
   - set_fact:
-      resource_defs: "{{ actionable_resources | shuffle }}"
-      batch_size: "{{ action_batch_size if action_batch_size < (actionable_resources|length|int) else (actionable_resources|length|int) }}"
+      resource_defs: "{{ actionable_resources.resources | shuffle }}"
+      batch_size: "{{ action_batch_size if action_batch_size < (actionable_resources.resources|length|int) else (actionable_resources.resources|length|int) }}"
 
   - include_tasks: "actions/{{ current_action }}_action.yml"
     loop: "{{ current_res.actions }}"

@@ -94,11 +94,11 @@ When `kind` is specified, the operator will use its own default definition for t
 When `kind` is not defined, you have to provide your own definition for the resource using `definition` field. This is particularly useful if you want to use other resources than the default supported ones.
 
 
-`teardown` is a boolean flag to request operator to teardown all the resources it created. 
+`teardown` is a boolean flag to request operator to teardown all the resources it created.
 
 ### KongBlitz Custom Resource
 
-KongBlitz CR defines different actions the operator will perform on resources to simulate load.
+KongBlitz CR defines different actions the operator will perform on resources to simulate load. By default, KongBlitz is designed to perform actions on resources created by KongArmy. However, it also provides a way to perform actions on resources launched outside of KongArmy. 
 
 _KongBlitz.example.yml_
 
@@ -111,10 +111,14 @@ metadata:
 spec:
   perform_actions: true
 
-  resources:
-    - kind: Secret
+  kongarmy_resources:
+    actions:
+    - label
+    time_delta: 2
+
+  extra_resources:
+    - kind: VeleroSnapshotLocation
       api_version: v1
-      namespace: king-kong
       time_delta: 2
       actions:
       - label
@@ -124,15 +128,23 @@ spec:
 
 `perform_actions` is a boolean flag to request the operator to start or stop performing actions.
 
-`resources` is a list of resources where each item in the list contains following keys:
+`kongarmy_resources` defines actions to perform on KongArmy resources. It is a dict with following keys:
 
-| Variable      	| Required? 	| Description                                                                                                                                                           	|
-|---------------	|-----------	|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| `kind`        	| Yes       	| Kind of the resource                                                                                                                                                  	|
-| `api_version` 	| No        	| `apiVersion` of the resource. Defaults to `v1`                                                                                                                        	|
-| `namespace`   	| No        	| Namespace of the resource. Defauts to the namespace in which the operator is deployed.                                                                                	|
-| `time_delta`  	| Yes       	| Time spacing between action generation in the multiples of reconcile period. Reconcile period is 5s. To generate actions every 10s, `time_delta` would be set to `2`. 	|
-| `actions`     	| Yes       	| List of actions to perform. See supported actions below. 
+| Variable   	| Description                                                                                                      	|
+|------------	|------------------------------------------------------------------------------------------------------------------	|
+| actions    	| Actions to perform on resources launched by KongArmy. See [Supported Actions](#supported-actions)                                                            	|
+| time_delta 	| Time spacing between actions in the multiples of reconcilePeriod. See [reconcilePeriod](#about-reconcile-period) 	|
+
+`extra_resources` defines actions to perform on resources launched outside of KongArmy. It is a list of resources where each item in the list contains following keys:
+
+| Variable    	| Required? 	| Description                                                                                                       	|
+|-------------	|-----------	|-------------------------------------------------------------------------------------------------------------------	|
+| kind        	| Yes       	| Kind of the resource                                                                                              	|
+| api_version 	| No        	| API version of the resource (Default: `v1`)                                                                       	|
+| actions     	| Yes       	| Actions to perform on the current resource. See [Supported Actions](#supported-actions)                                                                       	|
+| time_delta  	| Yes       	| Time spacing between actions in the multiples of reconcilePeriod. See  [reconcilePeriod](#about-reconcile-period) 	|
+
+Please note that the actions performed on `extra_resources` take more time than that of performed on `kongarmy_resources`. It is adviseable to not use `extra_resources` if the number of extra resources is large. 
 
 ___Supported Actions___
 
@@ -140,3 +152,7 @@ Currently supported actions include:
 * label
 * annotation
 * delete
+
+##### About Reconcile Period
+
+Reconcile Period of the operator is set at 5 seconds. `time_delta` is the multiple of the reconcile period. For example, to perform actions every 10 seconds, `time_delta` needs to be set to `2`.

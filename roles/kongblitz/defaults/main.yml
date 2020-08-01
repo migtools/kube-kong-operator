@@ -1,4 +1,5 @@
 ---
 reconcile_period: 5
+action_batch_size: 50
 time_format: "%Y-%m-%dT%H:%M:%SZ"
 timestamp_configmap_name: "kongblitz-timestamps"

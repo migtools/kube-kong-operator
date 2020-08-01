@@ -1,26 +1,21 @@
 ---
 - name: "Preparing resource sub list"
   vars:
-    actionable_resources_sub_list: []
+    resource_defs: []
     kong_metadata:
       metadata: 
         namespace: "{{ meta.namespace }}"
         name: "kong-{{ requested_resource.count|random|string }}"
-    resource_def: "{{ supported_resources[requested_resource.kind|lower]|d(requested_resource.definition)|combine(kong_metadata, recursive=true) }}"
+    resource_def: "{{ (supported_resources[requested_resource.kind|lower] if requested_resource.kind is defined else requested_resource.definition)|combine(kong_metadata, recursive=true) }}"
   set_fact:
-    actionable_resources_sub_list: "{{ actionable_resources_sub_list + [resource_def] }}"
+    resource_defs: "{{ resource_defs + [resource_def] }}"
   with_sequence: start=1 end="{{ [requested_resource.count|int,action_batch_size|int]|min|int }}"
 
 - set_fact:
-    resource_defs: "{{ actionable_resources | shuffle }}"
-    batch_size: "{{ action_batch_size if action_batch_size < (actionable_resources|length|int) else (actionable_resources|length|int) }}"
+    batch_size: "{{ action_batch_size if action_batch_size < (resource_defs|length|int) else (resource_defs|length|int) }}"
 
 - include_tasks: "actions/{{ current_action }}_action.yml"
   loop: "{{ kongarmy_resources.actions }}"
   ignore_errors: true # TODO: find a better approach to validate actions
   loop_control:
     loop_var: current_action
-  
-- name: "Merging resource lists"
-  set_fact:
-    actionable_resources: "{{ actionable_resources + actionable_resources_sub_list }}"
