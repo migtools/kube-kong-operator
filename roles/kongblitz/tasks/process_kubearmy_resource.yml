@@ -1,0 +1,21 @@
+---
+- set_fact:
+    resource_defs: []
+    batch_size: "{{ [requested_resource.count|int,action_batch_size|int]|min|int }}"
+
+- name: "Preparing resource sub list"
+  vars:
+    kong_metadata:
+      metadata: 
+        namespace: "{{ meta.namespace }}"
+        name: "kong-{{ requested_resource.count|random|string }}"
+    resource_def: "{{ (supported_resources[requested_resource.kind|lower] if requested_resource.kind is defined else requested_resource.definition)|combine(kong_metadata, recursive=true) }}"
+  set_fact:
+    resource_defs: "{{ resource_defs + [resource_def] }}"
+  with_sequence: start=1 end="{{ batch_size|int }}"
+
+- include_tasks: "actions/{{ current_action }}_action.yml"
+  loop: "{{ kongarmy_resources.actions }}"
+  ignore_errors: true # TODO: find a better approach to validate actions
+  loop_control:
+    loop_var: current_action

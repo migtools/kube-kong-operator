@@ -12,22 +12,49 @@
     operator_reconciled: true
 
 - block:
-  - name: "Reading timestamp configmap"
-    k8s_info:
-      kind: ConfigMap
-      namespace: "{{ meta.namespace }}"
-      name: "{{ timestamp_configmap_name }}"
-    register: blitz_timestamps
+  - when: perform_actions|d(true)|bool
+    block:
+    - name: "Reading KongArmy"
+      k8s_info: 
+        kind: KongArmy
+        api_version: konveyor.openshift.io/v1alpha1
+        namespace: "{{ meta.namespace }}"
+      register: kongarmies
 
-  - include_tasks: process_resource.yml
-    loop: "{{ resources }}"
-    loop_control:
-      loop_var: current_res
+    - name: "Finding accepted KongArmy"
+      vars:
+        query: "[?status.conditions[?type=='Accepted' && status=='True']]"
+      set_fact:
+        accepted_army: "{{ kongarmies.resources | json_query(query) }}"
 
-  - name: "Updating timestamp configmap"
-    k8s:
-      kind: ConfigMap
-      definition: "{{ kongblitz_timestamps_configmap | combine(kongblitz_timestamp_data, recursive=true) }}"
+    - name: "Reading timestamp configmap"
+      k8s_info:
+        kind: ConfigMap
+        namespace: "{{ meta.namespace }}"
+        name: "{{ timestamp_configmap_name }}"
+      register: blitz_timestamps
+    
+    - when: accepted_army|length > 0
+      set_fact:
+        accepted_army: "{{ accepted_army|first }}"
+
+    - when:
+      - accepted_army is defined
+      - accepted_army is mapping
+      include_tasks: process_kubearmy.yml
+
+    - when:
+      - extra_resources is defined
+      - extra_resources is iterable
+      include_tasks: process_resource.yml
+      loop: "{{ extra_resources }}"
+      loop_control:
+        loop_var: current_res
+
+    - name: "Updating timestamp configmap"
+      k8s:
+        kind: ConfigMap
+        definition: "{{ kongblitz_timestamps_configmap | combine(kongblitz_timestamp_data, recursive=true) }}"
 
   always:
   - debug: 
