@@ -2,6 +2,8 @@
 
 Kube Kong Operator helps you load test your Kubernetes applications by simulating production-like load on your dev cluster.
 
+See Kong Operator in action [here](./DEMO.md)
+
 ## What is offered?
 
 Kube Kong is a [Kubernetes Operator](https://www.redhat.com/en/topics/containers/what-is-a-kubernetes-operator) designed to do the following :
