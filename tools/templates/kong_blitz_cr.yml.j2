@@ -1,7 +1,7 @@
 apiVersion: konveyor.openshift.io/v1alpha1
-kind: KongArmy
+kind: KongBlitz
 metadata:
-  name: kongarmy
+  name: kongblitz
   namespace: {{ kong_target_ns }}
 spec:
-  {{ kong_army_cr }}
+  {{ kong_blitz_cr }}

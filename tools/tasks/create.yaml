@@ -1,5 +1,8 @@
 ---
 - block:
+  - set_fact:
+      kong_target_ns: "kong-{{ ns_prefix }}-{{ ns_index }}"
+
   - debug:
       msg: "Processing namespace {{ kong_target_ns }}"
 
@@ -20,3 +23,10 @@
       namespace: "{{ kong_target_ns }}"
       state: present
       definition: "{{ lookup('template', '{{ playbook_dir }}/templates/kong_army_cr.yml.j2' )}}"
+
+  - name: "Create KongBlitz CR on instance namespaces"
+    k8s:
+      namespace: "{{ kong_target_ns }}"
+      state: present
+      definition: "{{ lookup('template', '{{ playbook_dir }}/templates/kong_blitz_cr.yml.j2' )}}"
+

@@ -49,7 +49,7 @@ Destroy mode :
 1. Copy the sample kong_config_sample.yaml to kong_config.yaml (modify to your site needs)
 
 ```sh
-cp kong_config_sample.yaml kong_config.yaml
+cp kong_config.yaml.sample kong_config.yaml
 ```
 
 2. Run the kube kong launcher playbook : 
