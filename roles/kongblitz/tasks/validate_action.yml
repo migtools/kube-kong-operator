@@ -1,0 +1,20 @@
+---
+- set_fact:
+    supported: "{{ current_action in supported_actions }}"
+
+- block:
+
+  - name: "Set operator status condition"
+    vars:
+      condition:
+        - type: "Critical"
+          status: "True"
+          reason: "ActionCheckFailed"
+          message: "Requested resource {{ current_res.kind }} error, {{ current_action }} is not a supported action."
+          lastTransitionTime: "{{ ansible_date_time.iso8601 }}"
+    set_fact:
+      operator_conditions: "{{ operator_conditions + condition }}"
+
+  - set_fact:
+     requested_actions_supported: "false"
+  when: not supported|bool
