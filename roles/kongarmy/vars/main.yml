@@ -42,3 +42,4 @@ supported_actions:
   - annotation
   - delete
   - label
+  - list
