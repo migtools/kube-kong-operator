@@ -3,7 +3,7 @@
     kong_namespaces: "{{ kong_instance.get('number_of_namespaces', {}) }}"
     kong_army_cr: "{{ kong_instance.get('kong_army', {}) }}"
     kong_blitz_cr: "{{ kong_instance.get('kong_blitz', {}) }}"
-    ns_start_index: 0
+    ns_start_index: 1
 
 - name: "Create kong instances"
   include_tasks: tasks/create.yaml
