@@ -1,0 +1,14 @@
+---
+- block:
+  - name: "Listing secret resources"
+    k8s_info:
+      kind: Secret
+      api_version: v1
+    async: 180
+    poll: 0
+
+  always:
+  - debug:
+      msg: "Finished performing list actions"
+
+# TODO status condition once action performed
