@@ -31,16 +31,13 @@ spec:
     plural: kongblitzs
     singular: kongblitz
   scope: Namespaced
+  subresources:
+    status: {}
+  version: v1alpha1
   versions:
   - name: v1alpha1
-    schema:
-      openAPIV3Schema:
-        type: object
-        x-kubernetes-preserve-unknown-fields: true
     served: true
     storage: true
-    subresources:
-      status: {}
 ---
 apiVersion: v1
 kind: ServiceAccount

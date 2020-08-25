@@ -1,0 +1,28 @@
+---
+kong_config:
+  - number_of_namespaces: 20
+    kong_army:
+      teardown: false
+      requested_resources:
+      - count: 100
+        kind: Secret
+      - count: 100
+        kind: ConfigMap
+    kong_blitz:
+      perform_actions: true
+      kongarmy_resources:
+        actions:
+          - label
+        time_delta: 2
+  - number_of_namespaces: 10
+    kong_army:
+      teardown: false
+      requested_resources:
+      - count: 100
+        kind: Secret
+    kong_blitz:
+      perform_actions: true
+      kongarmy_resources:
+        actions:
+        - label
+        time_delta: 2

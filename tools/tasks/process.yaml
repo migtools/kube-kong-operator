@@ -1,18 +1,24 @@
 ---
 - set_fact:
-    kong_namespaces: "{{ kong_instance.get('namespaces', {}) }}"
+    kong_namespaces: "{{ kong_instance.get('number_of_namespaces', {}) }}"
     kong_army_cr: "{{ kong_instance.get('kong_army', {}) }}"
+    kong_blitz_cr: "{{ kong_instance.get('kong_blitz', {}) }}"
+    ns_start_index: 0
 
 - name: "Create kong instances"
   include_tasks: tasks/create.yaml
-  loop: "{{ kong_namespaces }}"
+  vars:
+    ns_prefix: "{{ ansible_loop.index }}"
+  with_sequence: start={{ ns_start_index|int }} end={{ kong_namespaces|int }}
   loop_control:
-    loop_var: kong_target_ns
+    loop_var: ns_index
   when: not teardown|bool
 
 - name: "Destroy kong instances"
   include_tasks: tasks/destroy.yaml
-  loop: "{{ kong_namespaces }}"
+  vars:
+    ns_prefix: "{{ ansible_loop.index }}"
+  with_sequence: start={{ ns_start_index|int }} end={{ kong_namespaces|int }}
   loop_control:
-    loop_var: kong_target_ns
+    loop_var: ns_index
   when: teardown|bool
